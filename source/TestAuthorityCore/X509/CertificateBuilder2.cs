@@ -35,8 +35,7 @@ namespace TestAuthorityCore.X509
             if(null==serialNumber)
                 serialNumber = BigIntegers.CreateRandomInRange(BigInteger.One, BigInteger.ValueOf(Int64.MaxValue), random);
 
-            SerialNo = serialNumber;
-
+            //SerialNo = serialNumber;
             certificateGenerator.SetSerialNumber(serialNumber);
         }
 
@@ -48,7 +47,7 @@ namespace TestAuthorityCore.X509
 
         public X509Name Subject { get; set; }
 
-        public BigInteger SerialNo { get { return mSerialNo; } set { mSerialNo = value; } } 
+        public BigInteger SerialNo { get { return mSerialNo; } set { mSerialNo = value; certificateGenerator.SetSerialNumber(mSerialNo); } } 
 
         public static AsymmetricCipherKeyPair GenerateKeyPair(int keyStrength, SecureRandom random)
         {

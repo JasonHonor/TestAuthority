@@ -5,7 +5,9 @@ using Nelibur.Sword.Extensions;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Math;
 using Org.BouncyCastle.X509;
+using TestAuthorityCore.Model;
 using TestAuthorityCore.X509;
 
 namespace TestAuthorityCore.Extensions
@@ -101,6 +103,14 @@ namespace TestAuthorityCore.Extensions
         {
             SubjectPublicKeyInfo subjectPublicKeyInfo = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(builder.PublicKeyInfo);
             builder.AddExtension(X509Extensions.SubjectKeyIdentifier.Id, false, new SubjectKeyIdentifier(subjectPublicKeyInfo));
+            return builder;
+        }
+
+        public static ICertificateBuilder WithSerialNo(this ICertificateBuilder builder)
+        {
+            //builder.AddExtension(X509Extensions.KeyUsage.Id, true, new KeyUsage(KeyUsage.CrlSign | KeyUsage.KeyCertSign | KeyUsage.DigitalSignature | KeyUsage.NonRepudiation));
+            builder.SerialNo = BigInteger.ValueOf((Int64)Store.GetMaxId()+1);
+            
             return builder;
         }
     }

@@ -67,9 +67,7 @@ namespace TestAuthorityCore
 
                 logger.LogInformation($"Using root certificate: {Environment.NewLine}{certificate.Certificate.ToString()}");
 
-                BigInteger bigInt = BigInteger.ValueOf((Int64)Store.GetMaxId()+1);
-
-                return new CertificateAuthorityService(x,certificate, randomService, bigInt);
+                return new CertificateAuthorityService(x,certificate, randomService);
             });
         }
     }

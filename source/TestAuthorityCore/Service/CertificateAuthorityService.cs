@@ -20,12 +20,12 @@ namespace TestAuthorityCore.Service
         private readonly RandomService randomService;
         private readonly CertificateWithKey SignerCertificate;
 
-        public CertificateAuthorityService(IServiceProvider provider,CertificateWithKey signerCertificate, RandomService randomService, BigInteger serialNo)
+        public CertificateAuthorityService(IServiceProvider provider,CertificateWithKey signerCertificate, RandomService randomService)
         {
             SignerCertificate = signerCertificate;
             this.randomService = randomService;
 
-            builderFactory = (random, issuer) => new CertificateBuilder2(provider,random, serialNo);
+            builderFactory = (random, issuer) => new CertificateBuilder2(provider,random);
         }
 
         public byte[] GenerateSslCertificate(PfxCertificateRequest request,ref BigInteger serialNo,bool isServer=false)
@@ -40,7 +40,8 @@ namespace TestAuthorityCore.Service
 
             X509Name signerSubject = new X509CertificateParser().ReadCertificate(SignerCertificate.Certificate.RawData).IssuerDN;
 
-            CertificateWithKey certificate = builder.WithSubjectCommonName(request.CommonName)
+            CertificateWithKey certificate = builder.WithSerialNo()
+                .WithSubjectCommonName(request.CommonName)
                 .WithKeyPair(keyPair)
                 .SetIssuer(signerSubject)
                 .SetNotAfter(notAfter)

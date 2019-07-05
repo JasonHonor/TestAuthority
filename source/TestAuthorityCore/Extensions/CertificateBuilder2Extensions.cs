@@ -28,9 +28,25 @@ namespace TestAuthorityCore.Extensions
             return builder;
         }
 
-        public static ICertificateBuilder WithExtendedKeyUsage(this ICertificateBuilder builder)
+        public static ICertificateBuilder WithExtendedKeyUsage(this ICertificateBuilder builder,bool isServer)
         {
-            var extendedKeyUsage = new ExtendedKeyUsage(KeyPurposeID.IdKPClientAuth, KeyPurposeID.IdKPServerAuth);
+            if (isServer)
+                return WithServerKeyUsage(builder);
+            else
+                return WithClientKeyUsage(builder);
+        }
+
+        public static ICertificateBuilder WithClientKeyUsage(this ICertificateBuilder builder)
+        {
+            var extendedKeyUsage = new ExtendedKeyUsage(KeyPurposeID.IdKPClientAuth);
+            builder.AddExtension(X509Extensions.ExtendedKeyUsage.Id, false, extendedKeyUsage);
+
+            return builder;
+        }
+
+        public static ICertificateBuilder WithServerKeyUsage(this ICertificateBuilder builder)
+        {
+            var extendedKeyUsage = new ExtendedKeyUsage(KeyPurposeID.IdKPServerAuth);
             builder.AddExtension(X509Extensions.ExtendedKeyUsage.Id, false, extendedKeyUsage);
 
             return builder;

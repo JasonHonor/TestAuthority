@@ -21,11 +21,22 @@ namespace TestAuthorityCore.X509
         private readonly SecureRandom random;
         private AsymmetricCipherKeyPair keyPair;
 
-        public CertificateBuilder2(SecureRandom random, int keyStrength = 2048)
+        BigInteger mSerialNo;
+
+        public CertificateBuilder2(IServiceProvider provider,SecureRandom random, BigInteger serialNumber=null,int keyStrength = 2048)
         {
             KeyStrength = keyStrength;
             this.random = random;
-            BigInteger serialNumber = BigIntegers.CreateRandomInRange(BigInteger.One, BigInteger.ValueOf(Int64.MaxValue), random);
+
+            ConfigService cfg = (ConfigService)provider.GetService(typeof(ConfigService));
+            KeyStrength = cfg.GetInt("KeyStrength");
+
+            //change the serial number;
+            if(null==serialNumber)
+                serialNumber = BigIntegers.CreateRandomInRange(BigInteger.One, BigInteger.ValueOf(Int64.MaxValue), random);
+
+            SerialNo = serialNumber;
+
             certificateGenerator.SetSerialNumber(serialNumber);
         }
 
@@ -36,6 +47,8 @@ namespace TestAuthorityCore.X509
         public AsymmetricKeyParameter PublicKeyInfo => keyPair.Public;
 
         public X509Name Subject { get; set; }
+
+        public BigInteger SerialNo { get { return mSerialNo; } set { mSerialNo = value; } } 
 
         public static AsymmetricCipherKeyPair GenerateKeyPair(int keyStrength, SecureRandom random)
         {

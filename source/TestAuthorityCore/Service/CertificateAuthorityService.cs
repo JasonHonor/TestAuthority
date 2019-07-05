@@ -4,6 +4,7 @@ using System.Security.Cryptography.X509Certificates;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.X509;
@@ -19,14 +20,15 @@ namespace TestAuthorityCore.Service
         private readonly RandomService randomService;
         private readonly CertificateWithKey SignerCertificate;
 
-        public CertificateAuthorityService(CertificateWithKey signerCertificate, RandomService randomService)
+        public CertificateAuthorityService(IServiceProvider provider,CertificateWithKey signerCertificate, RandomService randomService, BigInteger serialNo)
         {
             SignerCertificate = signerCertificate;
             this.randomService = randomService;
-            builderFactory = (random, issuer) => new CertificateBuilder2(random);
+
+            builderFactory = (random, issuer) => new CertificateBuilder2(provider,random, serialNo);
         }
 
-        public byte[] GenerateSslCertificate(PfxCertificateRequest request)
+        public byte[] GenerateSslCertificate(PfxCertificateRequest request,ref BigInteger serialNo,bool isServer=false)
         {
             DateTimeOffset notBefore = DateTimeOffset.UtcNow.AddHours(-2);
             DateTimeOffset notAfter = DateTimeOffset.UtcNow.AddYears(3);
@@ -45,9 +47,11 @@ namespace TestAuthorityCore.Service
                 .SetNotBefore(notBefore)
                 .WithSubjectAlternativeName(request.Hostnames, request.IpAddresses)
                 .WithBasicConstraints(BasicConstrainsConstants.EndEntity)
-                .WithExtendedKeyUsage()
+                .WithExtendedKeyUsage(isServer)               
                 .WithAuthorityKeyIdentifier(SignerCertificate.KeyPair)
                 .Generate(SignerCertificate.KeyPair);
+
+            serialNo = builder.SerialNo;
 
             return ConvertToPfx(certificate.Certificate, (RsaPrivateCrtKeyParameters)keyPair.Private, request.Password);
         }
@@ -71,7 +75,6 @@ namespace TestAuthorityCore.Service
             using (var stream = new MemoryStream())
             {
                 store.Save(stream, pfxPassword.ToCharArray(), random);
-
                 return stream.ToArray();
             }
         }

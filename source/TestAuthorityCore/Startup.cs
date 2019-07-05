@@ -6,7 +6,9 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Org.BouncyCastle.Math;
 using Swashbuckle.AspNetCore.Swagger;
+using TestAuthorityCore.Model;
 using TestAuthorityCore.Service;
 using TestAuthorityCore.Swagger;
 using TestAuthorityCore.X509;
@@ -65,7 +67,9 @@ namespace TestAuthorityCore
 
                 logger.LogInformation($"Using root certificate: {Environment.NewLine}{certificate.Certificate.ToString()}");
 
-                return new CertificateAuthorityService(certificate, randomService);
+                BigInteger bigInt = BigInteger.ValueOf((Int64)Store.GetMaxId()+1);
+
+                return new CertificateAuthorityService(x,certificate, randomService, bigInt);
             });
         }
     }

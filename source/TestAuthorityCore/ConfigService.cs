@@ -27,5 +27,10 @@ namespace TestAuthorityCore
         {
             return mConfiguration.GetValue<int>(key);
         }
+
+        public string GetConnectionString(string name)
+        {
+            return mConfiguration.GetConnectionString(name);
+        }
     }
 }

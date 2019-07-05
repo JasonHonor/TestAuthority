@@ -31,7 +31,7 @@ namespace TestAuthorityCore.Service
             Password = cfg.GetString("CaPwd");
             RootCertificateName = cfg.GetString("CaFile");
 
-            builderFactory = (random) => new CertificateBuilder2(random, KeyStrength);
+            builderFactory = (random) => new CertificateBuilder2(provider,random,null,KeyStrength);
         }
 
         public CertificateWithKey GetRootCertificate()

@@ -3,6 +3,8 @@ using System.Linq;
 using System.Net.Mime;
 using Microsoft.AspNetCore.Mvc;
 using Nelibur.Sword.Extensions;
+using Org.BouncyCastle.Math;
+using TestAuthorityCore.Model;
 using TestAuthorityCore.Service;
 using TestAuthorityCore.X509;
 
@@ -36,8 +38,8 @@ namespace TestAuthorityCore.Controllers
         /// <param name="ipAddress"></param>
         /// <param name="filename"></param>
         /// <returns></returns>
-        [HttpGet]
-        public IActionResult IssueCertificate([FromQuery] string commonName, [FromQuery] string password, [FromQuery] string[] hostname, [FromQuery] string[] ipAddress, [FromQuery] string filename = "certificate.pfx")
+        [HttpGet("/api/certificate/server/issue")]
+        public IActionResult IssueCertificate([FromQuery] string commonName, [FromQuery] string password, [FromQuery] string[] hostname, [FromQuery] string[] ipAddress)
         {
             if (hostname.IsNullOrEmpty())
             {
@@ -48,6 +50,8 @@ namespace TestAuthorityCore.Controllers
             {
                 commonName = $"SSL Certificate ({hostname.First()})";
             }
+
+            string filename = commonName + ".pfx";
 
             if (password.IsNullOrEmpty())
             {
@@ -67,7 +71,50 @@ namespace TestAuthorityCore.Controllers
                 Password = password
             };
 
-            byte[] certificate = service.GenerateSslCertificate(request);
+            BigInteger serialNo = BigInteger.Zero;
+
+            byte[] certificate = service.GenerateSslCertificate(request,ref serialNo,true);
+
+            Store.Insert(string.Format("{0}",serialNo.IntValue),Convert.ToBase64String(certificate), commonName, password);
+
+            return File(certificate, MediaTypeNames.Application.Octet, filename);
+        }
+
+        /// <summary>
+        /// Issue a certificate. Export in PFX format.
+        /// </summary>
+        /// <param name="commonName">CommonName used in certificate.</param>
+        /// <param name="password">Password that is used by Pfx container.</param>
+        /// <param name="hostname">Hostnames that will be added </param>
+        /// <param name="ipAddress"></param>
+        /// <param name="filename"></param>
+        /// <returns></returns>
+        [HttpGet("/api/certificate/client/issue")]
+        public IActionResult IssueClientCertificate([FromQuery] string commonName, [FromQuery] string password)
+        {
+            if (commonName.IsNullOrEmpty())
+            {
+                return BadRequest("CommonName is required");
+            }
+
+            string filename = commonName+".pfx";
+
+            if (password.IsNullOrEmpty())
+            {
+                password = "123123123";
+            }
+
+            var request = new PfxCertificateRequest
+            {
+                CommonName = commonName,
+                Password = password
+            };
+
+            BigInteger serialNo= BigInteger.Zero;
+
+            byte[] certificate = service.GenerateSslCertificate(request,ref serialNo);
+
+            Store.Insert(string.Format("{0}", serialNo.IntValue), Convert.ToBase64String(certificate), commonName, password);
 
             return File(certificate, MediaTypeNames.Application.Octet, filename);
         }

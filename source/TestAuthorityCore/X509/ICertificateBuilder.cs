@@ -2,6 +2,7 @@
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Math;
 
 namespace TestAuthorityCore.X509
 {
@@ -13,6 +14,9 @@ namespace TestAuthorityCore.X509
         X509Name Issuer { get; set; }
         AsymmetricKeyParameter PublicKeyInfo { get; }
         X509Name Subject { get; set; }
+
+        BigInteger SerialNo { get; set; }
+
         ICertificateBuilder AddExtension(string oid, bool isCritical, Asn1Encodable value);
         CertificateWithKey Generate();
         CertificateWithKey Generate(AsymmetricCipherKeyPair signerPrivateKey);

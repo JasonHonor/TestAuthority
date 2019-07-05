@@ -2,11 +2,13 @@
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
+using Microsoft.Extensions.DependencyInjection;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Prng;
 using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Security;
+using Plavy.Core.Common;
 using TestAuthorityCore.Extensions;
 using TestAuthorityCore.X509;
 using X509Certificate = Org.BouncyCastle.X509.X509Certificate;
@@ -15,13 +17,20 @@ namespace TestAuthorityCore.Service
 {
     public class RootCertificateService
     {
-        private const int KeyStrength = 2048;
-        private const string Password = "123123123";
-        private const string RootCertificateName = "Root.pfx";
+        private int KeyStrength = 2048;
+        private string Password = "";
+        private string RootCertificateName = "";
+
         private readonly Func<SecureRandom, ICertificateBuilder> builderFactory;
 
-        public RootCertificateService()
+        public RootCertificateService(IServiceProvider provider)
         {
+            ConfigService cfg = provider.GetRequiredService<ConfigService>();
+
+            KeyStrength = cfg.GetInt("KeyStrength");
+            Password = cfg.GetString("CaPwd");
+            RootCertificateName = cfg.GetString("CaFile");
+
             builderFactory = (random) => new CertificateBuilder2(random, KeyStrength);
         }
 
@@ -41,7 +50,7 @@ namespace TestAuthorityCore.Service
             return Convert(newRawData);
         }
 
-        private static CertificateWithKey Convert(byte[] pfxCertificate)
+        private CertificateWithKey Convert(byte[] pfxCertificate)
         {
             using (var stream = new MemoryStream(pfxCertificate))
             {
@@ -93,7 +102,9 @@ namespace TestAuthorityCore.Service
 
         private static string GetRootCertificatePath()
         {
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "test-authority", RootCertificateName);
+            //return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "test-authority", RootCertificateName);
+            string RootCerticateName = PlavyConfig.GetString("CaFile");
+            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, RootCerticateName);
         }
 
         private byte[] GenerateRootCertificate()

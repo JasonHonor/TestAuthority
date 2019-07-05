@@ -53,6 +53,7 @@ namespace TestAuthorityCore
                 config.OperationFilter<FormFileSwaggerFilter>();
             });
             services.AddLogging();
+            services.AddSingleton<ConfigService>();
             services.AddSingleton<RootCertificateService>();
             services.AddSingleton<RandomService>();
             services.AddSingleton(x =>
